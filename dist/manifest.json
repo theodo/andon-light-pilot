@@ -1,0 +1,17 @@
+{
+  "name": "Theodo light tower",
+  "description": "Theodo light tower control app",
+  "version": "0.1",
+  "manifest_version": 2,
+  "permissions": ["hid", {
+    "usbDevices": [
+      { "vendorId": 66, "productId": 16896  }
+    ]
+  }],
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "icons": { "16": "calculator-16.png", "128": "calculator-128.png" }
+}
