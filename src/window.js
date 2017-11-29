@@ -1,10 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-const VENDORID=0x42, PRODUCTID=0x4200;
+/**
+ * Constants
+ */
+
+const VENDORID=0x42, PRODUCTID=0x4200; // USB device vendorId/productId
 const COLOR = {GREEN: 0, ORANGE: 1, RED: 2};
 const CSS_COLORS = ['green', 'orange', 'red'];
-const ORANGE_THRESHOLD = 30, RED_THRESHOLD = 0;
+const ORANGE_THRESHOLD = 30, RED_THRESHOLD = 0; // color change thresholds in seconds
+
+/**
+ * Light API
+ *
+ * example to set green led ON
+ * getConnection().then(color(0))
+ */
 
 var conn = null;
 const getConnection = () => {
@@ -24,6 +35,8 @@ const getConnection = () => {
   })
 }
 
+// color is 0 (green), 1 (orange) or 2 (red)
+// conn comes from getConntection above
 const sendColor = (color) => (conn) => new Promise((resolve, reject) => {
   chrome.hid.send(conn.connectionId, 0x0, new Uint8Array([color]), () => {
     if (chrome.runtime.lastError) {
@@ -36,7 +49,15 @@ const sendColor = (color) => (conn) => new Promise((resolve, reject) => {
   });
 });
 
+// Misc
+
 const pad = (v) => ('0' + v).slice(-2)
+
+/**
+ * React UI code
+ *
+ * Scroll to <App /> component for starting point
+ */
 
 class TimeInput extends React.Component {
 
@@ -75,7 +96,7 @@ class TimeInput extends React.Component {
     return (
       <div id='timer' tabIndex='0' onKeyUp={this._handleKeyDown}>
         {started ? 
-          (<div id='left'>{time < 0 && time > -1 ? '-' + pad(Math.ceil(time / 60)) : pad(Math.floor(time / 60))}:{pad(Math.abs(time) % 60)}</div>)
+          (<div id='left'>{(time < 0 ? '-' : '') + pad(Math.floor(Math.abs(time) / 60))}:{pad(Math.abs(time) % 60)}</div>)
           :
           (<div id='left'>{pad(minutes)}:{pad(secs)}</div>)
         }
@@ -165,6 +186,8 @@ class App extends React.Component {
       .then(() => this.setState({color}));
   }
 }
+
+// Render, yo
 
 $(() => {
   ReactDOM.render(<App />, $('#app')[0]);

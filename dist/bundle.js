@@ -1052,7 +1052,7 @@ class TimeInput extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component 
       started ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
         'div',
         { id: 'left' },
-        time < 0 && time > -1 ? '-' + pad(Math.ceil(time / 60)) : pad(Math.floor(time / 60)),
+        (time < 0 ? '-' : '') + pad(Math.floor(Math.abs(time) / 60)),
         ':',
         pad(Math.abs(time) % 60)
       ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
