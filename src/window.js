@@ -35,11 +35,14 @@ const getConnection = () => {
   })
 }
 
+const clearConnection = () => { conn = null; };
+
 // color is 0 (green), 1 (orange) or 2 (red)
 // conn comes from getConntection above
 const sendColor = (color) => (conn) => new Promise((resolve, reject) => {
   chrome.hid.send(conn.connectionId, 0x0, new Uint8Array([color]), () => {
     if (chrome.runtime.lastError) {
+      clearConnection();
       reject(chrome.runtime.lastError);
       console.log('send error : ', chrome.runtime.lastError)
     } else {
@@ -119,6 +122,9 @@ class TimeInput extends React.Component {
   }
 
   _handleKeyDown = (e) => {
+    const { started } = this.state;
+    if (started) return;
+
     if (e.keyCode == 13) {
       if (this.state.input == 0) return;
       if (this.timeout) clearTimeout(this.timeout);
@@ -167,15 +173,18 @@ class App extends React.Component {
   constructor() {
     super();
 
-    this.state = {color: COLOR.GREEN};
+    this.state = {color: COLOR.GREEN, connected: false};
   }
 
   render() {
-    const { color } = this.state;
+    const { color, connected } = this.state;
     return (
       <div id='bg' style={{backgroundColor: CSS_COLORS[color]}}>
         <TimeInput onColorSelected={this._handleColorSelected} />
         <Buttons onColorSelected={this._handleColorSelected} />
+        {!connected && (
+          <small style={{color: 'white'}}>Not connected</small>
+        )}
       </div>
     );
   }
@@ -183,7 +192,8 @@ class App extends React.Component {
   _handleColorSelected = (color) => () => {  
     getConnection()
       .then(sendColor(color))
-      .then(() => this.setState({color}));
+      .then(() => this.setState({connected: true, color}))
+      .catch(() => this.setState({connected: false}));
   }
 }
 

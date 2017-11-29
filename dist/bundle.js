@@ -944,12 +944,23 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+/**
+ * Constants
+ */
+
 const VENDORID = 0x42,
-      PRODUCTID = 0x4200;
+      PRODUCTID = 0x4200; // USB device vendorId/productId
 const COLOR = { GREEN: 0, ORANGE: 1, RED: 2 };
 const CSS_COLORS = ['green', 'orange', 'red'];
 const ORANGE_THRESHOLD = 30,
-      RED_THRESHOLD = 0;
+      RED_THRESHOLD = 0; // color change thresholds in seconds
+
+/**
+ * Light API
+ *
+ * example to set green led ON
+ * getConnection().then(color(0))
+ */
 
 var conn = null;
 const getConnection = () => {
@@ -969,9 +980,16 @@ const getConnection = () => {
   });
 };
 
+const clearConnection = () => {
+  conn = null;
+};
+
+// color is 0 (green), 1 (orange) or 2 (red)
+// conn comes from getConntection above
 const sendColor = color => conn => new Promise((resolve, reject) => {
   chrome.hid.send(conn.connectionId, 0x0, new Uint8Array([color]), () => {
     if (chrome.runtime.lastError) {
+      clearConnection();
       reject(chrome.runtime.lastError);
       console.log('send error : ', chrome.runtime.lastError);
     } else {
@@ -981,7 +999,15 @@ const sendColor = color => conn => new Promise((resolve, reject) => {
   });
 });
 
+// Misc
+
 const pad = v => ('0' + v).slice(-2);
+
+/**
+ * React UI code
+ *
+ * Scroll to <App /> component for starting point
+ */
 
 class TimeInput extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
 
@@ -999,6 +1025,9 @@ class TimeInput extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component 
     };
 
     this._handleKeyDown = e => {
+      const { started } = this.state;
+      if (started) return;
+
       if (e.keyCode == 13) {
         if (this.state.input == 0) return;
         if (this.timeout) clearTimeout(this.timeout);
@@ -1121,23 +1150,30 @@ class App extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
     super();
 
     this._handleColorSelected = color => () => {
-      getConnection().then(sendColor(color)).then(() => this.setState({ color }));
+      getConnection().then(sendColor(color)).then(() => this.setState({ connected: true, color })).catch(() => this.setState({ connected: false }));
     };
 
-    this.state = { color: COLOR.GREEN };
+    this.state = { color: COLOR.GREEN, connected: false };
   }
 
   render() {
-    const { color } = this.state;
+    const { color, connected } = this.state;
     return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
       'div',
       { id: 'bg', style: { backgroundColor: CSS_COLORS[color] } },
       __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(TimeInput, { onColorSelected: this._handleColorSelected }),
-      __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Buttons, { onColorSelected: this._handleColorSelected })
+      __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Buttons, { onColorSelected: this._handleColorSelected }),
+      !connected && __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'small',
+        { style: { color: 'white' } },
+        'Not connected'
+      )
     );
   }
 
 }
+
+// Render, yo
 
 $(() => {
   __WEBPACK_IMPORTED_MODULE_1_react_dom___default.a.render(__WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(App, null), $('#app')[0]);
